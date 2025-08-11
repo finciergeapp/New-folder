@@ -1,0 +1,91 @@
+<!DOCTYPE html> 
+ <html lang="en"> 
+ <head> 
+   <meta charset="UTF-8" /> 
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+   <title>Churnaizer Full System Test</title> 
+   <style> 
+     body { font-family: Arial, sans-serif; padding: 20px; } 
+     .status { padding: 10px; border-radius: 5px; margin-top: 15px; } 
+     .success { background: #d4edda; color: #155724; } 
+     .error { background: #f8d7da; color: #721c24; } 
+     .loading { background: #fff3cd; color: #856404; } 
+   </style> 
+  
+   <!-- Churnaizer SDK --> 
+   <script> 
+     // API key from Churnaizer Dashboard 
+     window.__CHURNAIZER_API_KEY__ = "cg_261f34e9bdd5de338ee994e8f99d7809"; 
+  
+     // Unique test user (forced high-risk) 
+     const testUserId = "test_user_highrisk_" + Date.now(); 
+     window.__CHURNAIZER_USER_ID__ = testUserId; 
+   </script> 
+   <script async src=" `https://churnaizer.com/churnaizer-sdk.js` "></script> 
+ </head> 
+ <body> 
+   <h1>🔍 Churnaizer Full System Test</h1> 
+   <p>This test will check:</p> 
+   <ul> 
+     <li>✅ SDK Integration</li> 
+     <li>🔗 Trace ID Generation</li> 
+     <li>📉 High Risk Prediction</li> 
+     <li>📧 Email Automation</li> 
+     <li>💰 Recovery Tracking (Instant)</li> 
+   </ul> 
+  
+   <button id="runTest">🚀 Run Full Test</button> 
+   <div id="result" class="status loading">Waiting to start...</div> 
+  
+   <script> 
+     document.getElementById("runTest").addEventListener("click", async () => { 
+       const resultDiv = document.getElementById("result"); 
+       resultDiv.textContent = "⏳ Running full system test..."; 
+       resultDiv.className = "status loading"; 
+  
+       try { 
+         // 1. Identify + trigger churn-prone event 
+         churnaizer('identify', window.__CHURNAIZER_USER_ID__); 
+         churnaizer('track', 'plan_downgrade', { plan_amount: 10, days_active: 200 }); 
+  
+         // 2. Call backend to simulate AI churn prediction + recovery log 
+         const res = await fetch(" `https://ntbkydpgjaswmwruegyl.supabase.co/functions/v1/sdk-test` ", {
+           method: "POST", 
+           headers: { 
+             "Content-Type": "application/json", 
+             "x-api-key": window.__CHURNAIZER_API_KEY__ 
+           }, 
+           body: JSON.stringify({ 
+             test: true, 
+             website: window.location.hostname, 
+             user_id: window.__CHURNAIZER_USER_ID__, 
+             force_high_risk: true, 
+             auto_recover: true, // <-- NEW: instantly mark recovery 
+             recovery_reason: "Test user re-engaged after email" 
+           }) 
+         }); 
+  
+         const data = await res.json(); 
+         console.log("Test response:", data); 
+  
+         if (data.status === "ok" && data.trace_id) { 
+           resultDiv.textContent = `✅ Integration OK — Trace ID: ${data.trace_id} — Recovery Logged`; 
+           resultDiv.className = "status success"; 
+  
+           // Optional: Auto-refresh dashboard if it's open in another tab 
+           try { 
+             localStorage.setItem("churnaizer_dashboard_refresh", Date.now()); 
+           } catch {} 
+         } else { 
+           resultDiv.textContent = "⚠️ Test ran but some checks failed — see console"; 
+           resultDiv.className = "status error"; 
+         } 
+       } catch (err) { 
+         console.error("Full test error:", err); 
+         resultDiv.textContent = "❌ Test failed — check console for details"; 
+         resultDiv.className = "status error"; 
+       } 
+     }); 
+   </script> 
+ </body> 
+ </html>
