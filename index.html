@@ -21,7 +21,7 @@
      const testUserId = "test_user_highrisk_" + Date.now(); 
      window.__CHURNAIZER_USER_ID__ = testUserId; 
    </script> 
-   <script async src=" `https://churnaizer.com/churnaizer-sdk.js` "></script> 
+   <script async src="https://churnaizer.com/churnaizer-sdk.js"></script> 
  </head> 
  <body> 
    <h1>🔍 Churnaizer Full System Test</h1> 
@@ -45,11 +45,18 @@
   
        try { 
          // 1. Identify + trigger churn-prone event 
-         churnaizer('identify', window.__CHURNAIZER_USER_ID__); 
-         churnaizer('track', 'plan_downgrade', { plan_amount: 10, days_active: 200 }); 
+         const waitForChurnaizer = () => {
+           if (typeof window.churnaizer !== 'undefined') {
+             churnaizer('identify', window.__CHURNAIZER_USER_ID__); 
+             churnaizer('track', 'plan_downgrade', { plan_amount: 10, days_active: 200 }); 
+           } else {
+             setTimeout(waitForChurnaizer, 100);
+           }
+         };
+         waitForChurnaizer();
   
          // 2. Call backend to simulate AI churn prediction + recovery log 
-         const res = await fetch(" `https://ntbkydpgjaswmwruegyl.supabase.co/functions/v1/sdk-test` ", {
+         const res = await fetch("https://ntbkydpgjaswmwruegyl.supabase.co/functions/v1/sdk-test", {
            method: "POST", 
            headers: { 
              "Content-Type": "application/json", 
