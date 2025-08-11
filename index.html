@@ -60,7 +60,7 @@
            method: "POST", 
            headers: { 
              "Content-Type": "application/json", 
-             "x-api-key": window.__CHURNAIZER_API_KEY__ 
+             "Authorization": `Bearer ${window.__CHURNAIZER_API_KEY__}`
            }, 
            body: JSON.stringify({ 
              test: true, 
